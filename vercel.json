@@ -1,10 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/*.py", "use": "@vercel/python" }
-  ],
+  "functions": {
+    "api/relay.py": { "runtime": "python3.11" }
+  },
   "routes": [
-    { "src": "/api/health",   "dest": "/api/health.py" },
-    { "src": "/api/run/(.*)", "dest": "/api/gateway.py" }
+    { "src": "/api/(.*)", "dest": "/api/relay.py" }
   ]
 }
