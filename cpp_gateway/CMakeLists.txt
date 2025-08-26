@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(aikre8tive_gateway_cpp LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 20)
+project(gateway CXX)
+
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Simple HTTP server without external dependencies
 add_executable(gateway main.cpp)
-target_include_directories(gateway PRIVATE ${CMAKE_SOURCE_DIR}/third_party)
-target_link_libraries(gateway pthread)
+find_package(Threads REQUIRED)
+target_link_libraries(gateway PRIVATE Threads::Threads)
