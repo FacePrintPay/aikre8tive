@@ -1,27 +1,17 @@
 {
   "version": 2,
-  "name": "aikre8tive",
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "backend/**/*.py",
-      "use": "@vercel/python"
-    }
-  ],
+  "functions": {
+    "api/core.py": { "runtime": "python3.11" },
+    "api/giants.py": { "runtime": "python3.11" },
+    "api/moons.py": { "runtime": "python3.11" },
+    "api/dwarfs.py": { "runtime": "python3.11" },
+    "api/gateway.py": { "runtime": "python3.11" }
+  },
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "PYTHON_VERSION": "3.9"
-  }
+    { "src": "/api/core/(.*)", "dest": "/api/core.py" },
+    { "src": "/api/giants/(.*)", "dest": "/api/giants.py" },
+    { "src": "/api/moons/(.*)", "dest": "/api/moons.py" },
+    { "src": "/api/dwarfs/(.*)", "dest": "/api/dwarfs.py" },
+    { "src": "/api/(.*)", "dest": "/api/gateway.py" }
+  ]
 }
