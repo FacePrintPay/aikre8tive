@@ -1,0 +1,8 @@
+__pycache__/
+*.log
+*.tmp
+*.pyc
+.env
+node_modules/
+termux-properties/
+.vercel

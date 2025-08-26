@@ -1,0 +1,5 @@
+# AiKre8tive Sovereign Agent System Dependencies
+python-dateutil>=2.8.0
+pathlib2>=2.3.0
+typing-extensions>=4.0.0
+setuptools>=65.0.0
