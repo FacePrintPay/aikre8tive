@@ -1,17 +1,13 @@
 {
   "version": 2,
   "functions": {
-    "api/core.py": { "runtime": "python3.11" },
-    "api/giants.py": { "runtime": "python3.11" },
-    "api/moons.py": { "runtime": "python3.11" },
-    "api/dwarfs.py": { "runtime": "python3.11" },
-    "api/gateway.py": { "runtime": "python3.11" }
+    "api/*.py": { "runtime": "vercel-python@3.9" }
   },
   "routes": [
-    { "src": "/api/core/(.*)", "dest": "/api/core.py" },
+    { "src": "/api/core/(.*)",   "dest": "/api/core.py" },
     { "src": "/api/giants/(.*)", "dest": "/api/giants.py" },
-    { "src": "/api/moons/(.*)", "dest": "/api/moons.py" },
+    { "src": "/api/moons/(.*)",  "dest": "/api/moons.py" },
     { "src": "/api/dwarfs/(.*)", "dest": "/api/dwarfs.py" },
-    { "src": "/api/(.*)", "dest": "/api/gateway.py" }
+    { "src": "/api/(.*)",        "dest": "/api/gateway.py" }
   ]
 }

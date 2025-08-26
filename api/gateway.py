@@ -1,15 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Body
+from backend.agents import load_agent
 
-app = FastAPI(title="AiKre8tive Meta-Gateway", version="1.0")
+app = FastAPI(title="AiKre8tive Gateway")
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
-    return {
-        "groups": ["core","giants","moons","dwarfs"],
-        "routes": {
-            "core": "/api/core/agent/{name}",
-            "giants": "/api/giants/agent/{name}",
-            "moons": "/api/moons/agent/{name}",
-            "dwarfs": "/api/dwarfs/agent/{name}"
-        }
-    }
+    return {"ok": True, "service": "gateway"}
+
+@app.post("/api/run/{agent}")
+def run_agent(agent: str, payload: dict = Body(default={})):
+    fn = load_agent(agent)
+    return {"agent": agent, "result": fn(payload)}
