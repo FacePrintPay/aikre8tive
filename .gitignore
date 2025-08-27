@@ -1,8 +1,8 @@
-__pycache__/
+node_modules/
+dist/
+build/
 *.log
 *.tmp
+__pycache__/
 *.pyc
-.env
-node_modules/
-termux-properties/
-.vercel
+.DS_Store
