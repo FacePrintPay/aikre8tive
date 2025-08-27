@@ -1,9 +1,5 @@
 {
-  "version": 2,
-  "functions": {
-    "api/relay.py": { "runtime": "python3.11" }
-  },
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/relay.py" }
-  ]
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": "public"
 }
