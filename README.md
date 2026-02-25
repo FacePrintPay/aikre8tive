@@ -1,4 +1,4 @@
-# 🌐 AiKre8tive: FacePrintPay Platform
+# 🌐 AiKre8tive: Constellation25 Platform
 
 > 🎯 **Your AI. Your Rules.**  
 > 🧬 Biometric-powered access.  
@@ -7,9 +7,9 @@
 
 ---
 
-## 📁 Repository: `FacePrintPay`
+## 📁 Repository: `Constellation25`
 
-This is the core deployment stack for **FacePrintPay**, a module of the larger **AiKre8tive ecosystem** — enabling secure, biometric-authenticated access to AI systems, avatars, documents, payments, and agents.
+This is the core deployment stack for **Constellation25**, a module of the larger **AiKre8tive ecosystem** — enabling secure, biometric-authenticated access to AI systems, avatars, documents, payments, and agents.
 
 ---
 
@@ -47,7 +47,7 @@ This is the core deployment stack for **FacePrintPay**, a module of the larger *
 
 - [x] Termux auto-sync and Git push
 - [x] Rclone multi-agent vaults
-- [x] FacePrintPay GitHub integration
+- [x] Constellation25 GitHub integration
 - [ ] Agent task orchestration UI
 - [ ] Web3 payments module (`Zale`, `CashApp`, `Stripe`, `MoonPay`)
 - [ ] Secure Obsidian sync and log chain for `Z-Series` case files
@@ -74,7 +74,7 @@ Distributed under proprietary AI IP frameworks (Z-Series Filing)
 ### 🔗 Related Projects
 
 - [AiKre8tive Cloud](https://aikre8tive.cloud)
-- [VideoCourts](https://github.com/FacePrintPay/videocourts)
+- [VideoCourts](https://github.com/Constellation25/videocourts)
 - [GoldenTicket2Space](https://goldenticket2space.com)
 - [AiRecords](https://airecords.org)
 

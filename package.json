@@ -9,6 +9,6 @@
     "dev": "python3 sovereign_launch.sh"
   },
   "keywords": ["ai", "agents", "planetary", "sovereign"],
-  "author": "FacePrintPay",
+  "author": "Constellation25",
   "license": "MIT"
 }
