@@ -1,3 +1,7 @@
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 name: Deploy web apps to Vercel
 on:
   push: { branches: [ main, master ] }
