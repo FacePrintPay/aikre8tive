@@ -1,0 +1,721 @@
+version: '3.9'
+
+services:
+  # ═══════════════════════════════════════════════════════════
+  # CORE GATEWAY & ROUTING
+  # ═══════════════════════════════════════════════════════════
+  
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: c25-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════
+  # INFRASTRUCTURE
+  # ═══════════════════════════════════════════════════════════
+  
+  redis:
+    image: redis:7-alpine
+    container_name: c25-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: c25-postgres
+    environment:
+      POSTGRES_USER: c25_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_changeme}
+      POSTGRES_DB: c25_main
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U c25_admin"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════
+  # PLANETARY AGENTS (25 Total)
+  # Each agent handles specific domain
+  # ═══════════════════════════════════════════════════════════
+
+  # EARTH - Infrastructure & Structure
+  agent-earth:
+    build:
+      context: ./agents/earth
+      dockerfile: Dockerfile
+    container_name: c25-agent-earth
+    environment:
+      AGENT_ID: earth
+      AGENT_ROLE: infrastructure
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # MARS - Security & Authentication
+  agent-mars:
+    build:
+      context: ./agents/mars
+      dockerfile: Dockerfile
+    container_name: c25-agent-mars
+    environment:
+      AGENT_ID: mars
+      AGENT_ROLE: security
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      BIOMETRIC_API_KEY: ${BIOMETRIC_API_KEY}
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # PALLAS - CI/CD Pipeline
+  agent-pallas:
+    build:
+      context: ./agents/pallas
+      dockerfile: Dockerfile
+    container_name: c25-agent-pallas
+    environment:
+      AGENT_ID: pallas
+      AGENT_ROLE: ci_cd
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # NYX - Machine Learning
+  agent-nyx:
+    build:
+      context: ./agents/nyx
+      dockerfile: Dockerfile
+    container_name: c25-agent-nyx
+    environment:
+      AGENT_ID: nyx
+      AGENT_ROLE: machine_learning
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      MODEL_PATH: /models
+    volumes:
+      - ./models:/models
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # SUN - Performance & Optimization
+  agent-sun:
+    build:
+      context: ./agents/sun
+      dockerfile: Dockerfile
+    container_name: c25-agent-sun
+    environment:
+      AGENT_ID: sun
+      AGENT_ROLE: performance
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9005/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # MERCURY - Testing & QA
+  agent-mercury:
+    build:
+      context: ./agents/mercury
+      dockerfile: Dockerfile
+    container_name: c25-agent-mercury
+    environment:
+      AGENT_ID: mercury
+      AGENT_ROLE: testing
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9006/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # VENUS - Regression Testing
+  agent-venus:
+    build:
+      context: ./agents/venus
+      dockerfile: Dockerfile
+    container_name: c25-agent-venus
+    environment:
+      AGENT_ID: venus
+      AGENT_ROLE: regression_testing
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9007/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # JUPITER - Documentation
+  agent-jupiter:
+    build:
+      context: ./agents/jupiter
+      dockerfile: Dockerfile
+    container_name: c25-agent-jupiter
+    environment:
+      AGENT_ID: jupiter
+      AGENT_ROLE: documentation
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9008/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # SATURN - Code Refactoring
+  agent-saturn:
+    build:
+      context: ./agents/saturn
+      dockerfile: Dockerfile
+    container_name: c25-agent-saturn
+    environment:
+      AGENT_ID: saturn
+      AGENT_ROLE: refactoring
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9009/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # URANUS - API Management
+  agent-uranus:
+    build:
+      context: ./agents/uranus
+      dockerfile: Dockerfile
+    container_name: c25-agent-uranus
+    environment:
+      AGENT_ID: uranus
+      AGENT_ROLE: api_management
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9010/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # NEPTUNE - Database Management
+  agent-neptune:
+    build:
+      context: ./agents/neptune
+      dockerfile: Dockerfile
+    container_name: c25-agent-neptune
+    environment:
+      AGENT_ID: neptune
+      AGENT_ROLE: database
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      DB_URL: postgresql://c25_admin:${DB_PASSWORD:-secure_changeme}@postgres:5432/c25_main
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9011/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # PLUTO - Database Migration
+  agent-pluto:
+    build:
+      context: ./agents/pluto
+      dockerfile: Dockerfile
+    container_name: c25-agent-pluto
+    environment:
+      AGENT_ID: pluto
+      AGENT_ROLE: migration
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      DB_URL: postgresql://c25_admin:${DB_PASSWORD:-secure_changeme}@postgres:5432/c25_main
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9012/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # CERES - Dependency Management
+  agent-ceres:
+    build:
+      context: ./agents/ceres
+      dockerfile: Dockerfile
+    container_name: c25-agent-ceres
+    environment:
+      AGENT_ID: ceres
+      AGENT_ROLE: dependencies
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9013/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # VESTA - Build System
+  agent-vesta:
+    build:
+      context: ./agents/vesta
+      dockerfile: Dockerfile
+    container_name: c25-agent-vesta
+    environment:
+      AGENT_ID: vesta
+      AGENT_ROLE: build
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9014/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # JUNO - Container Management
+  agent-juno:
+    build:
+      context: ./agents/juno
+      dockerfile: Dockerfile
+    container_name: c25-agent-juno
+    environment:
+      AGENT_ID: juno
+      AGENT_ROLE: containers
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      DOCKER_SOCKET: /var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9015/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # ERIS - Cloud Deployment
+  agent-eris:
+    build:
+      context: ./agents/eris
+      dockerfile: Dockerfile
+    container_name: c25-agent-eris
+    environment:
+      AGENT_ID: eris
+      AGENT_ROLE: cloud
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9016/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # MAKEMAKE - Monitoring
+  agent-makemake:
+    build:
+      context: ./agents/makemake
+      dockerfile: Dockerfile
+    container_name: c25-agent-makemake
+    environment:
+      AGENT_ID: makemake
+      AGENT_ROLE: monitoring
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9017/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # HAUMEA - Incident Response
+  agent-haumea:
+    build:
+      context: ./agents/haumea
+      dockerfile: Dockerfile
+    container_name: c25-agent-haumea
+    environment:
+      AGENT_ID: haumea
+      AGENT_ROLE: incidents
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9018/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # SEDNA - Backup & Recovery
+  agent-sedna:
+    build:
+      context: ./agents/sedna
+      dockerfile: Dockerfile
+    container_name: c25-agent-sedna
+    environment:
+      AGENT_ID: sedna
+      AGENT_ROLE: backup
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9019/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # QUAOAR - Scaling
+  agent-quaoar:
+    build:
+      context: ./agents/quaoar
+      dockerfile: Dockerfile
+    container_name: c25-agent-quaoar
+    environment:
+      AGENT_ID: quaoar
+      AGENT_ROLE: scaling
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9020/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # ORCUS - Network Management
+  agent-orcus:
+    build:
+      context: ./agents/orcus
+      dockerfile: Dockerfile
+    container_name: c25-agent-orcus
+    environment:
+      AGENT_ID: orcus
+      AGENT_ROLE: network
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9021/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # VARUNA - Logging & Indexing
+  agent-varuna:
+    build:
+      context: ./agents/varuna
+      dockerfile: Dockerfile
+    container_name: c25-agent-varuna
+    environment:
+      AGENT_ID: varuna
+      AGENT_ROLE: logging
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9022/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # IXION - Secrets Management
+  agent-ixion:
+    build:
+      context: ./agents/ixion
+      dockerfile: Dockerfile
+    container_name: c25-agent-ixion
+    environment:
+      AGENT_ID: ixion
+      AGENT_ROLE: secrets
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9023/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # CHAOS - Resilience Engineering
+  agent-chaos:
+    build:
+      context: ./agents/chaos
+      dockerfile: Dockerfile
+    container_name: c25-agent-chaos
+    environment:
+      AGENT_ID: chaos
+      AGENT_ROLE: resilience
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9024/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════
+  # MONITORING & OBSERVABILITY
+  # ═══════════════════════════════════════════════════════════
+
+  health-dashboard:
+    build:
+      context: ./services/health-dashboard
+      dockerfile: Dockerfile
+    container_name: c25-health-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      ORCHESTRATOR_URL: http://orchestrator:8000
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    networks:
+      - c25-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  postgres-data:
+
+networks:
+  c25-network:
+    driver: bridge
