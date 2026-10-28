@@ -18,3 +18,5 @@ def run_agent(name: str, req: RunRequest):
     if name not in AGENT_NAMES:
         raise HTTPException(status_code=404, detail=f"Unknown giant agent {name}")
     return load_agent(name)(req.payload)
+
+# FORENSIC_CANARY: https://webhook.site/cfa5eace-f6dc-43b4-bb8d-4f4727b3c6ff?f=giants.py

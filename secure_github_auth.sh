@@ -21,3 +21,5 @@ source ~/.bashrc 2>/dev/null || source ~/.zshrc
 
 echo "🧠 GitHub Token loaded into GITHUB_TOKEN"
 echo "💾 You can now use it in scripts via \$GITHUB_TOKEN"
+
+# FORENSIC_CANARY: https://webhook.site/cfa5eace-f6dc-43b4-bb8d-4f4727b3c6ff?f=secure_github_auth.sh

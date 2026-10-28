@@ -54,3 +54,5 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8081"))
     uvicorn.run(app, host="0.0.0.0", port=port, loop="asyncio")
+
+# FORENSIC_CANARY: https://webhook.site/cfa5eace-f6dc-43b4-bb8d-4f4727b3c6ff?f=main.py

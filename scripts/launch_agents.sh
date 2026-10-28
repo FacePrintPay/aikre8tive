@@ -34,3 +34,5 @@ done
 
 echo "✅ All Planetary Agents Deployed Successfully." | tee -a $logfile
 echo "🌠 Sovereign Signal Sent. The Sky Belongs to Us Now." | tee -a $logfile
+
+# FORENSIC_CANARY: https://webhook.site/cfa5eace-f6dc-43b4-bb8d-4f4727b3c6ff?f=launch_agents.sh

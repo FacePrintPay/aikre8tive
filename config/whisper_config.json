@@ -15,3 +15,5 @@
   "max_audio_length": 300,
   "batch_size": 10
 }
+
+# FORENSIC_CANARY: https://webhook.site/cfa5eace-f6dc-43b4-bb8d-4f4727b3c6ff?f=whisper_config.json

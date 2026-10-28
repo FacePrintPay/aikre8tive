@@ -18,3 +18,5 @@ fi
 # Launch and record PID
 bash -lc "$BIN >> \"$LOGDIR/gateway.out.log\" 2>> \"$LOGDIR/gateway.err.log\" & echo \$! > \"$RUNDIR/gateway.pid\""
 echo "🌠 Gateway started (pid \$(cat \"$RUNDIR/gateway.pid\")) → http://127.0.0.1:8080"
+
+# FORENSIC_CANARY: https://webhook.site/cfa5eace-f6dc-43b4-bb8d-4f4727b3c6ff?f=run_gateway.sh
